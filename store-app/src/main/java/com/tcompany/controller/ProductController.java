@@ -1,11 +1,16 @@
 package com.tcompany.controller;
 
+import com.tcompany.model.Product;
 import com.tcompany.model.Users;
+import com.tcompany.service.ProductService;
 import com.tcompany.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
@@ -14,76 +19,85 @@ import java.io.IOException;
 //@Order(2)
 public class ProductController {
 	@Autowired
-	private UserService userService;
+	private ProductService productService;
 	@RequestMapping(method = RequestMethod.GET, value = { "/products" })
-	public ModelAndView products() {
+	public ModelAndView index() {
 		ModelAndView andView = new ModelAndView("/products/products");
 
-		andView.addObject("users", userService.getAll());
-		andView.addObject("userobj", new Users());
+		andView.addObject("products", productService.getAll());
+		andView.addObject("product", new Product());
 		
 		return andView;
 	}
 
-	@RequestMapping(method = RequestMethod.POST, value = { "/saveProduct", "*/saveProducts" })
-	public ModelAndView saveProduct(@ModelAttribute Users user)
+	@RequestMapping(method = RequestMethod.POST, value = { "/saveProduct", "*/saveProduct" })
+	public ModelAndView saveProduct(@ModelAttribute @Validated Product product, BindingResult bindingResult,
+									final MultipartFile photo)
 			 throws IOException {
 		
 		
 		ModelAndView andView =  new ModelAndView("/products/products");
-		if(user.getUser_id()>= 0 &&( user.getPassword()==null || user.getPassword().trim()=="")) {
-			Users user_tmp = userService.getUserById(user.getUser_id());
-			user.setPassword(user_tmp.getPassword());
-		}else{
-			user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+
+		if (photo.getSize() > 0) {
+			product.setPhoto(photo.getBytes());
+			product.setPhotoType(photo.getContentType());
+			product.setPhotoName(photo.getOriginalFilename());
+
+		} else {
+			if ( product.getProductId() > 0) {
+				Product productTemp = productService.getProductById(product.getProductId());
+				product.setPhoto(productTemp.getPhoto());
+				product.setPhotoType(productTemp.getPhotoType());
+				product.setPhotoName(productTemp.getPhotoName());
+			}
 		}
-			Users user_saved = userService.addOrUpdateUSer(user);
-			andView.addObject("users", userService.getAll());
-			andView.addObject("userobj", user_saved);
+			Product product_saved = productService.addOrUpdateProduct(product);
+		andView.addObject("products", productService.getAll());
+			andView.addObject("product", product_saved);
 		andView.addObject("msg","Saved successful");
 	
 		return andView;
 	}
 	@RequestMapping(method = RequestMethod.GET, value = { "/products/new" })
-	public ModelAndView create() {
+	public ModelAndView createProduct() {
 		ModelAndView andView = new ModelAndView("/products/product-form");
 
-		andView.addObject("userobj", new Users());
-		andView.addObject("title", "Add New User");
+		andView.addObject("product", new Product());
+		andView.addObject("title", "Add New Product");
 		return andView;
 	}
-	@RequestMapping(method = RequestMethod.GET, value = "/listProducts")
-	public ModelAndView users() {
+	@RequestMapping(method = RequestMethod.GET, value = "/listproducts")
+	public ModelAndView listProducts() {
 		ModelAndView andView = new ModelAndView("/products/products");
 
-		andView.addObject("users", userService.getAll());
-		andView.addObject("userobj", new Users());
+		andView.addObject("products", productService.getAll());
+		andView.addObject("product", new Product());
 		
 		return andView;
 	}
 
 	@GetMapping("/editProduct/{id}")
-	public ModelAndView edit(@PathVariable("id") Integer id) {
-		ModelAndView andView = new ModelAndView("/users/product-form");
-		Users user = userService.getUserById(id);
-		andView.addObject("userobj", user);
-		andView.addObject("title", "Edit User");
+	public ModelAndView editProduct(@PathVariable("id") Integer id) {
+		ModelAndView andView = new ModelAndView("/products/product-form");
+		Product product = productService.getProductById(id);
+		andView.addObject("products", productService.getAll());
+		andView.addObject("title", "Edit Product");
 		return andView;
 	}
 
 	@RequestMapping(value = { "/deleteProduct/{id}" }, method = RequestMethod.GET)
-	public ModelAndView delete(@PathVariable("id") Integer id) throws Exception {
-	Users user =	userService.deleteUser(id);
+	public ModelAndView deleteProduct(@PathVariable("id") Integer id) throws Exception {
+	Product product =	productService.deleteProduct(id);
 	String msg = "";
-	if(user==null){
-		msg="Not found user to delete";
+	if(product==null){
+		msg="Not found Product to delete";
 	}else{
-		msg="User "+user.getFirs_name()+" deleted successful";
+		msg="User "+product.getProductName()+" deleted successful";
 	}
-		ModelAndView andView = new ModelAndView("/users/users");
+		ModelAndView andView = new ModelAndView("/products/products");
 
-		andView.addObject("users", userService.getAll());
-		andView.addObject("userobj", new Users());
+		andView.addObject("products", productService.getAll());
+		andView.addObject("product", new Product());
 		andView.addObject("msg",msg);
 		return andView;
 	}
