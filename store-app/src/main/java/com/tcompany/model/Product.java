@@ -41,7 +41,7 @@ public class Product {
     private int quantity;
 
     @Lob
-    @Column(name = "photo", length = 1000)
+    @Column(name = "photo", length = 4000)
     private byte[] photo;
     @Column(name = "photoName")
     private String photoName;

@@ -1,83 +1,100 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+<html lang="pt-PT" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
 	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
 <head>
-<meta charset="ISO-8859-1">
+<meta charset="UTF-8">
 <title>TAPP</title>
 	<link th:rel="stylesheet" th:href="@{/webjars/bootstrap/4.6.0-1/css/bootstrap.min.css} "/>
 	<style>
 		.main{
-		width:600px;
-		height:400px;
+		width:100%;
+		min-height:400px;
 		display:inline-table;
-        border:green solid 4px;
+       /* border:green solid 4px;*/
 		}
-
+#productId{
+background:#fff;
+height:44px;
+}
 	</style>
 </head>
 <body>
 <header th:replace="fragments/header :: header"></header>
-<div class="container  text-center">
+<div class="container-fluid  text-center">
 	<div class="row text-center p-2">
 		<span th:text="${msg}"></span>
 	</div>
 	<div class="main">
 	<h1 class="text-center mb-1 p-2" th:text="${title}"></h1>
-<div class="row text-center mb-1 mt-1">
+<div class="row text-center mb-3 mt-3">
 </div>
-<form action="save" id="formuser" method="post" th:object="${userobj}" class="border p-1">
-	<div class="input-group mt-1">
+<form action="saveProduct" id="formProduct" method="post" th:object="${product}" class="border p-1" enctype="multipart/form-data">
+	<div class="row">
+	<div class="input-group col-md-6 mt-1">
   <span class="input-group-text col-2">Id</span>
-  <input type="text" class="form-control" aria-label="ID" id="user_id" th:field="*{user_id}" name="user_id"  readonly="true">
+  <input type="text" class="form-control" aria-label="Id" id="productId" th:field="*{productId}" name="productId"  readonly="true">
 </div>
-<div class="input-group mt-4">
-  <span class="input-group-text col-2">First</span>
-  <input type="text" aria-label="First name" id="firs_name" name="firs_name" th:field="*{firs_name}" class="form-control" required>
+<div class="input-group col-md-6  mt-2">
+  <span class="input-group-text col-2">Category</span>
 
+	<select class="browser-default" th:field="*{category}">
+		<option value="" disabled selected>[Select Category]</option>
+		<option th:each="ctg : ${categories}" th:value="${ctg.categoryId}" th:text="${ctg.categoryName}"></option>
+	</select>
 </div>
-	<div class="input-group mt-4">
-		<span class="input-group-text col-2">Last name</span>
+	</div>
+	<div class="input-group  mt-2">
+		<span class="input-group-text col-2">Name</span>
 
-		<input type="text" aria-label="Last name" id="last_name" name="last_name" th:field="*{last_name}" class="form-control" required>
-	</div>
-	<div class="input-group mt-4">
-		<span class="input-group-text col-2">Email</span>
-		<input type="text" aria-label="First name" id="email" name="firs_name" th:field="*{email}" class="form-control" required>
-	</div>
-	<div class="input-group mt-4">
-		<span class="input-group-text col-2">Password</span>
-		<input type="password" aria-label="Last name" id="password" name="last_name" th:field="*{password}" class="form-control">
+		<input type="text" aria-label="Name" id="productName" name="productName" th:field="*{productName}" class="form-control" required>
 	</div>
 
-	<div class="input-group mt-4">
+	<div class="row">
+	<div class="input-group col-md-4 mt-2">
+		<span class="input-group-text col-2">Price(€)</span>
+		<input type="text" aria-label="Price" id="price" name="price" th:field="*{price}" data-mask="#.##0,00€" data-mask-reverse="true" class="form-control" required>
+	</div>
+	<div class="input-group col-md-4 mt-2">
+		<span class="input-group-text col-2">Cost(€)</span>
+		<input type="text" aria-label="First name" id="cost" name="cost" data-mask="#.##0,00€" data-mask-reverse="true" th:field="*{cost}" class="form-control" required>
+	</div>
+	<div class="input-group col-md-4 mt-2">
+		<span class="input-group-text col-2">Quantity</span>
+		<input type="text" aria-label="First name" id="quantity" name="quantity" th:field="*{quantity}" class="form-control" required>
+	</div>
+	</div>
+	<div class="input-group mt-2">
+		<span class="input-group-text col-2">Description</span>
+
+		<textarea aria-label="Description" id="productDescription" rows="3" name="productDescription" th:field="*{productDescription}" class="form-control" required/>
+	</div>
+	<div class="input-group mt-2">
 		<span class="input-group-text col-2">Photo</span>
-		<input type="file" class="form-control-file col-4" id="photo" name="photo"  accept=".jpg, .jpeg">
+		<input type="file" class="form-control-file col-4" id="photo" name="photo"  accept=".jpg, .jpeg, .png">
 
 	</div>
 
-	<div class="input-group mt-4">
+	<div class="input-group mt-2">
 <div class="form-check">
-	<label class="form-check-label mr-5" for="enabled">
+	<label class="form-check-label mr-5" for="productEnabled">
 		Enabled
 	</label>
-  <input class="form-check-input" type="checkbox" value="" id="enabled" th:field="*{enabled}" name="enabled">
+  <input class="form-check-input" type="checkbox" value="" id="productEnabled" th:field="*{productEnabled}" name="productEnabled">
 
 </div>
+	</div>
+	<div class="input-group mt-2">
+		<img th:src="@{${'/image/'+ product.productId}}"
+			 class="card img-fluid" style="width:150px" alt=""/>
 	</div>
 <button type="submit" class="btn btn-success mt-2">Save</button>
 
 <a class="btn btn-secondary mt-2" type="button"
-		href="http://localhost:8080/users/">
+		href="http://localhost:8080/products/">
 								Cancel</a>
 </form>
 	</div>
 </div>
-<style>
-	.bar, .id_input{
-	width:200px;
-	}
-
-</style>
 <script th:src="@{/webjars/jquery/3.5.1/jquery.min.js}"></script>
 <script th:src="@{/webjars/popper.js/1.16.0/umd/popper.min.js}"></script>
 <script th:src="@{/webjars/bootstrap/4.6.0-1/js/bootstrap.min.js}"></script>
